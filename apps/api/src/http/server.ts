@@ -13,6 +13,8 @@ import {
 
 import { errorHandler } from '@/http/error-handler'
 
+import { usersRoutes } from './routes/users'
+
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
@@ -47,6 +49,8 @@ app.register(fastifySwaggerUI, {
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
 })
+
+app.register(usersRoutes)
 
 app.register(fastifyCors)
 
