@@ -1,243 +1,95 @@
-import { faker } from '@faker-js/faker'
 import { PrismaClient } from '@prisma/client'
-import { hash } from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
-async function seed() {
-  await prisma.organization.deleteMany()
-  await prisma.user.deleteMany()
-
-  const passwordHash = await hash('123456', 1)
-
-  const user = await prisma.user.create({
+async function main() {
+  // Criando usuários
+  const user1 = await prisma.user.create({
     data: {
-      name: 'John Doe',
-      email: 'john@acme.com',
-      avatarUrl: 'https://github.com/diego3g.png',
-      passwordHash,
+      name: 'Alice Doe',
+      cpf: '12345678900',
+      email: 'alice@example.com',
+      password: 'hashedpassword1', // Substitua por senha criptografada
+      role: 'USER',
     },
   })
 
-  const anotherUser = await prisma.user.create({
+  const user2 = await prisma.user.create({
     data: {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      avatarUrl: faker.image.avatarGitHub(),
-      passwordHash,
+      name: 'Bob Smith',
+      cpf: '09876543211',
+      email: 'bob@example.com',
+      password: 'hashedpassword2', // Substitua por senha criptografada
+      role: 'ADMIN',
     },
   })
 
-  const anotherUser2 = await prisma.user.create({
+  // Criando eventos
+  const event1 = await prisma.event.create({
     data: {
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      avatarUrl: faker.image.avatarGitHub(),
-      passwordHash,
+      name: 'Concert A',
+      date: new Date('2025-06-12T20:00:00Z'),
+      location: 'Stadium A',
     },
   })
 
-  await prisma.organization.create({
+  const event2 = await prisma.event.create({
     data: {
-      name: 'Acme Inc (Admin)',
-      domain: 'acme.com',
-      slug: 'acme-admin',
-      avatarUrl: faker.image.avatarGitHub(),
-      shouldAttachUsersByDomain: true,
-      ownerId: user.id,
-      projects: {
-        createMany: {
-          data: [
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-          ],
-        },
-      },
-      members: {
-        createMany: {
-          data: [
-            {
-              userId: user.id,
-              role: 'ADMIN',
-            },
-            {
-              userId: anotherUser.id,
-              role: 'MEMBER',
-            },
-            {
-              userId: anotherUser2.id,
-              role: 'MEMBER',
-            },
-          ],
-        },
-      },
+      name: 'Concert B',
+      date: new Date('2025-07-15T20:00:00Z'),
+      location: 'Stadium B',
     },
   })
 
-  await prisma.organization.create({
+  // Criando lotes
+  const batch1 = await prisma.batch.create({
     data: {
-      name: 'Acme Inc (Billing)',
-      slug: 'acme-billing',
-      avatarUrl: faker.image.avatarGitHub(),
-      ownerId: user.id,
-      projects: {
-        createMany: {
-          data: [
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-          ],
-        },
-      },
-      members: {
-        createMany: {
-          data: [
-            {
-              userId: user.id,
-              role: 'BILLING',
-            },
-            {
-              userId: anotherUser.id,
-              role: 'ADMIN',
-            },
-            {
-              userId: anotherUser2.id,
-              role: 'MEMBER',
-            },
-          ],
-        },
-      },
+      eventId: event1.id,
+      price: 100.0,
+      total: 100,
+      available: 100,
     },
   })
 
-  await prisma.organization.create({
+  const batch2 = await prisma.batch.create({
     data: {
-      name: 'Acme Inc (Member)',
-      slug: 'acme-member',
-      avatarUrl: faker.image.avatarGitHub(),
-      ownerId: user.id,
-      projects: {
-        createMany: {
-          data: [
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-            {
-              name: faker.lorem.words(5),
-              slug: faker.lorem.slug(5),
-              description: faker.lorem.paragraph(),
-              avatarUrl: faker.image.avatarGitHub(),
-              ownerId: faker.helpers.arrayElement([
-                user.id,
-                anotherUser.id,
-                anotherUser2.id,
-              ]),
-            },
-          ],
-        },
-      },
-      members: {
-        createMany: {
-          data: [
-            {
-              userId: user.id,
-              role: 'MEMBER',
-            },
-            {
-              userId: anotherUser.id,
-              role: 'ADMIN',
-            },
-            {
-              userId: anotherUser2.id,
-              role: 'MEMBER',
-            },
-          ],
-        },
-      },
+      eventId: event2.id,
+      price: 150.0,
+      total: 100,
+      available: 100,
+    },
+  })
+
+  // Criando ingressos
+  await prisma.ticket.create({
+    data: {
+      userId: user1.id,
+      eventId: event1.id,
+      batchId: batch1.id,
+      qrCode: 'QRCode12345',
+      isValidated: false,
+      isRevoked: false,
+      isRefunded: false,
+    },
+  })
+
+  await prisma.ticket.create({
+    data: {
+      userId: user2.id,
+      eventId: event2.id,
+      batchId: batch2.id,
+      qrCode: 'QRCode67890',
+      isValidated: false,
+      isRevoked: false,
+      isRefunded: false,
     },
   })
 }
 
-seed().then(() => {
-  console.log('Database seeded!')
-})
+main()
+  .catch((e) => {
+    throw e
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })
